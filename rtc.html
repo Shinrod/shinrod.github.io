@@ -1,0 +1,92 @@
+<!--
+WebRTC Demo
+
+Deploy this app.
+`python -m http.server 8000`
+
+Open two browsers.
+Go to http://localhost:8000/rtc.html on both of them.
+
+1. Click "Create Offer" in A.
+2. Copy A 'local' object.
+3. Paste it in B 'remote' field.
+4. Click 'Apply remote' in B.
+5. Click 'Create answer' in B.
+6. Copy B 'local' object.
+7. Paste it in A 'remote' field.
+8. Click 'Apply remote' in A.
+
+You can now chat in the chat box !
+-->
+
+<!DOCTYPE html>
+<html>
+<body>
+<h3>WebRTC Manual Connection Demo</h3>
+
+<textarea id="local" placeholder="Local SDP" rows="10" cols="60"></textarea>
+<br>
+<button id="create-offer">Create Offer</button>
+<button id="create-answer">Create Answer</button>
+<br><br>
+
+<textarea id="remote" placeholder="Paste remote SDP here" rows="10" cols="60"></textarea>
+<button id="apply-remote">Apply Remote</button>
+
+<h3>Chat</h3>
+<input id="msg" placeholder="Message">
+<button id="send">Send</button>
+
+<ul id="log"></ul>
+
+<script>
+let pc = new RTCPeerConnection({
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+});
+let channel;
+
+pc.onicecandidate = e => {
+    if (e.candidate) return;
+    document.getElementById("local").value = JSON.stringify(pc.localDescription);
+};
+
+pc.ondatachannel = e => {
+    channel = e.channel;
+    channel.onmessage = msg => addMessage("Them: " + msg.data);
+};
+
+document.getElementById("create-offer").onclick = async () => {
+    channel = pc.createDataChannel("chat");
+    channel.onmessage = msg => addMessage("Them: " + msg.data);
+
+    let offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+};
+
+document.getElementById("create-answer").onclick = async () => {
+    let offer = JSON.parse(document.getElementById("remote").value);
+    await pc.setRemoteDescription(offer);
+
+    let answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+};
+
+document.getElementById("apply-remote").onclick = async () => {
+    let desc = JSON.parse(document.getElementById("remote").value);
+    await pc.setRemoteDescription(desc);
+};
+
+document.getElementById("send").onclick = () => {
+    let msg = document.getElementById("msg").value;
+    channel.send(msg);
+    addMessage("Me: " + msg);
+};
+
+function addMessage(msg) {
+    let li = document.createElement("li");
+    li.textContent = msg;
+    document.getElementById("log").appendChild(li);
+}
+</script>
+</body>
+</html>

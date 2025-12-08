@@ -6,19 +6,22 @@
     <script type="module" src="js/app.js"></script>
 </head>
 <body>
-    <h2>French Semantic Guess Game</h2>
+    <h2>Cémantix (oui le vrai)</h2>
 
-    <p>Try to guess the hidden French word!</p>
     <p id="hint"></p>
 
     <input id="guess" placeholder="Enter a word">
     <button id="compute">Check</button>
     <button id="newWord">New Word</button>
 
-    <p>Last 3 guesses:</p>
-    <ul id="recentGuesses"></ul>
+    <p>Derniers guess:</p>
+    <table id="recentGuessTable">
+        <tbody></tbody>
+    </table>
 
-<p>All guesses sorted by distance:</p>
-<ul id="guessList"></ul>
+    <p>Tous les guess:</p>
+    <table id="guessTable">
+        <tbody></tbody>
+    </table>
 </body>
 </html>

@@ -34,39 +34,69 @@ async function pickNewWord() {
     targetEmbedding = await embedWord(targetWord);
     guesses = [];
     updateGuessList();
-    document.getElementById("hint").textContent = "A new word has been chosen. Start guessing!";
+    document.getElementById("hint").textContent = "Et c'est parti !";
     console.log("Target word (debug):", targetWord);
 }
 
 // Update the displayed guess lists
 function updateGuessList() {
-    const recentUl = document.getElementById("recentGuesses");
-    const fullUl = document.getElementById("guessList");
-
-    // Clear existing lists
-    recentUl.innerHTML = "";
-    fullUl.innerHTML = "";
-
-    // Recent guesses: last 3 entries, newest first
+    // Last 3 guesses (newest first)
     const recent = guesses.slice(-3).reverse();
+    const recentBody = document.querySelector("#recentGuessTable tbody");
+    recentBody.innerHTML = "";
+
     for (const g of recent) {
-        const sim = 1 - g.distance; // raw similarity
+        const sim = 1 - g.distance;
         const logSim = similarityScale(sim);
-        const similarityPercent = (logSim * 100).toFixed(2);
-        const li = document.createElement("li");
-        li.textContent = `${g.word} → ${similarityPercent}%`;
-        recentUl.appendChild(li);
+        const similarityPercent = (logSim * 100).toFixed(2) + "%";
+
+        const row = document.createElement("tr");
+        const wordCell = document.createElement("td");
+        const simCell = document.createElement("td");
+
+        wordCell.textContent = g.word.padStart(20, " ");
+        wordCell.style.textAlign = "right";
+        wordCell.style.whiteSpace = "pre";
+        wordCell.style.fontFamily = "monospace";
+
+        simCell.textContent = similarityPercent;
+        simCell.style.textAlign = "right";
+        simCell.style.whiteSpace = "pre";
+        simCell.style.fontFamily = "monospace";
+
+        row.appendChild(wordCell);
+        row.appendChild(simCell);
+        recentBody.appendChild(row);
     }
 
-    // Full sorted list: all guesses by ascending distance
-    const sortedGuesses = [...guesses].sort((a,b) => a.distance - b.distance);
+    // Full sorted list (ascending distance → closest first)
+    const sortedGuesses = [...guesses].sort((a, b) => a.distance - b.distance);
+    const tableBody = document.querySelector("#guessTable tbody");
+    tableBody.innerHTML = "";
+
     for (const g of sortedGuesses) {
         const sim = 1 - g.distance;
         const logSim = similarityScale(sim);
-        const similarityPercent = (logSim * 100).toFixed(2);
-        const li = document.createElement("li");
-        li.textContent = `${g.word} → ${similarityPercent}%`;
-        fullUl.appendChild(li);
+        const similarityPercent = (logSim * 100).toFixed(2) + "%";
+
+        const row = document.createElement("tr");
+        const wordCell = document.createElement("td");
+        const simCell = document.createElement("td");
+
+        wordCell.textContent = g.word.padStart(20, " ");
+        wordCell.style.textAlign = "right";
+        wordCell.style.whiteSpace = "pre";
+        wordCell.style.fontFamily = "monospace";
+
+        simCell.textContent = similarityPercent;
+        simCell.style.textAlign = "right";
+        simCell.style.whiteSpace = "pre";
+        simCell.style.fontFamily = "monospace";
+
+
+        row.appendChild(wordCell);
+        row.appendChild(simCell);
+        tableBody.appendChild(row);
     }
 }
 

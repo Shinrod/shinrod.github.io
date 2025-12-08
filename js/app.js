@@ -40,64 +40,66 @@ async function pickNewWord() {
 
 // Update the displayed guess lists
 function updateGuessList() {
+    function computeProgress(simPercent) {
+        if (simPercent < 25) return 0;
+        const normalized = (simPercent - 25) / (100 - 25);
+        const gamma = 0.6; // power-law exponent
+        return Math.pow(normalized, gamma) * 100;
+    }
+
+    function renderTable(guessesList, tableSelector) {
+        const tableBody = document.querySelector(tableSelector);
+        tableBody.innerHTML = "";
+
+        for (const g of guessesList) {
+            const sim = 1 - g.distance;
+            const logSim = similarityScale(sim);
+            const similarityPercent = (logSim * 100).toFixed(2);
+
+            const row = document.createElement("tr");
+
+            // Word cell
+            const wordCell = document.createElement("td");
+            wordCell.textContent = g.word.padStart(20, " ");
+            wordCell.style.textAlign = "right";
+            wordCell.style.whiteSpace = "pre";
+            wordCell.style.fontFamily = "monospace";
+
+            // Similarity cell
+            const simCell = document.createElement("td");
+            simCell.textContent = similarityPercent + "%";
+                simCell.style.textAlign = "right";
+            simCell.style.whiteSpace = "pre";
+            simCell.style.fontFamily = "monospace";
+
+            // Progress bar cell
+            const progressCell = document.createElement("td");
+            if (Number(similarityPercent) > 25) {
+                const container = document.createElement("div");
+                container.className = "progress-container";
+
+                const bar = document.createElement("div");
+                bar.className = "progress-bar";
+                bar.style.width = computeProgress(Number(similarityPercent)) + "%";
+
+                container.appendChild(bar);
+                progressCell.appendChild(container);
+            }
+
+            row.appendChild(wordCell);
+            row.appendChild(simCell);
+            row.appendChild(progressCell);
+            tableBody.appendChild(row);
+        }
+    }
+
     // Last 3 guesses (newest first)
     const recent = guesses.slice(-3).reverse();
-    const recentBody = document.querySelector("#recentGuessTable tbody");
-    recentBody.innerHTML = "";
+    renderTable(recent, "#recentGuessTable tbody");
 
-    for (const g of recent) {
-        const sim = 1 - g.distance;
-        const logSim = similarityScale(sim);
-        const similarityPercent = (logSim * 100).toFixed(2) + "%";
-
-        const row = document.createElement("tr");
-        const wordCell = document.createElement("td");
-        const simCell = document.createElement("td");
-
-        wordCell.textContent = g.word.padStart(20, " ");
-        wordCell.style.textAlign = "right";
-        wordCell.style.whiteSpace = "pre";
-        wordCell.style.fontFamily = "monospace";
-
-        simCell.textContent = similarityPercent;
-        simCell.style.textAlign = "right";
-        simCell.style.whiteSpace = "pre";
-        simCell.style.fontFamily = "monospace";
-
-        row.appendChild(wordCell);
-        row.appendChild(simCell);
-        recentBody.appendChild(row);
-    }
-
-    // Full sorted list (ascending distance → closest first)
+    // Full sorted list
     const sortedGuesses = [...guesses].sort((a, b) => a.distance - b.distance);
-    const tableBody = document.querySelector("#guessTable tbody");
-    tableBody.innerHTML = "";
-
-    for (const g of sortedGuesses) {
-        const sim = 1 - g.distance;
-        const logSim = similarityScale(sim);
-        const similarityPercent = (logSim * 100).toFixed(2) + "%";
-
-        const row = document.createElement("tr");
-        const wordCell = document.createElement("td");
-        const simCell = document.createElement("td");
-
-        wordCell.textContent = g.word.padStart(20, " ");
-        wordCell.style.textAlign = "right";
-        wordCell.style.whiteSpace = "pre";
-        wordCell.style.fontFamily = "monospace";
-
-        simCell.textContent = similarityPercent;
-        simCell.style.textAlign = "right";
-        simCell.style.whiteSpace = "pre";
-        simCell.style.fontFamily = "monospace";
-
-
-        row.appendChild(wordCell);
-        row.appendChild(simCell);
-        tableBody.appendChild(row);
-    }
+    renderTable(sortedGuesses, "#guessTable tbody");
 }
 
 function similarityScale(sim) {

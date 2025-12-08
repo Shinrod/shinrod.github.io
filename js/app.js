@@ -38,20 +38,32 @@ async function pickNewWord() {
     console.log("Target word (debug):", targetWord);
 }
 
-// Update the displayed guess list
+// Update the displayed guess lists
 function updateGuessList() {
-    const ul = document.getElementById("guessList");
-    ul.innerHTML = "";
+    const recentUl = document.getElementById("recentGuesses");
+    const fullUl = document.getElementById("guessList");
 
-    // Sort guesses by distance ascending
-    guesses.sort((a,b) => a.distance - b.distance);
+    // Clear existing lists
+    recentUl.innerHTML = "";
+    fullUl.innerHTML = "";
 
-    for (const g of guesses) {
+    // Recent guesses: last 3 entries, newest first
+    const recent = guesses.slice(-3).reverse();
+    for (const g of recent) {
         const li = document.createElement("li");
-        li.textContent = `${g.word} → Distance: ${g.distance.toFixed(4)} (Similarity: ${(1-g.distance).toFixed(4)})`;
-        ul.appendChild(li);
+        li.textContent = `${g.word} → Similarity: ${(1 - g.distance).toFixed(4)}`;
+        recentUl.appendChild(li);
+    }
+
+    // Full sorted list: all guesses by ascending distance (closest similarity first)
+    const sortedGuesses = [...guesses].sort((a,b) => a.distance - b.distance);
+    for (const g of sortedGuesses) {
+        const li = document.createElement("li");
+        li.textContent = `${g.word} → Similarity: ${(1 - g.distance).toFixed(4)}`;
+        fullUl.appendChild(li);
     }
 }
+
 
 // Check a guess
 async function checkGuess() {

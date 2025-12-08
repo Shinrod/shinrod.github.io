@@ -9,12 +9,16 @@
     <h2>French Semantic Guess Game</h2>
 
     <p>Try to guess the hidden French word!</p>
+    <p id="hint"></p>
 
     <input id="guess" placeholder="Enter a word">
     <button id="compute">Check</button>
     <button id="newWord">New Word</button>
 
-    <p id="hint"></p>
-    <ul id="guessList"></ul>
+    <p>Last 3 guesses:</p>
+    <ul id="recentGuesses"></ul>
+
+<p>All guesses sorted by distance:</p>
+<ul id="guessList"></ul>
 </body>
 </html>

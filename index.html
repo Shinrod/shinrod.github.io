@@ -2,16 +2,19 @@
 <html>
 <head>
     <meta charset="UTF-8" />
-    <title>CamemBERT Semantic Distance</title>
+    <title>French Semantic Guess Game</title>
     <script type="module" src="js/app.js"></script>
 </head>
 <body>
-    <h2>CamemBERT Semantic Distance</h2>
+    <h2>French Semantic Guess Game</h2>
 
-    <input id="word1" placeholder="First word">
-    <input id="word2" placeholder="Second word">
-    <button id="compute">Compute Distance</button>
+    <p>Try to guess the hidden French word!</p>
 
-    <p id="result"></p>
+    <input id="guess" placeholder="Enter a word">
+    <button id="compute">Check</button>
+    <button id="newWord">New Word</button>
+
+    <p id="hint"></p>
+    <ul id="guessList"></ul>
 </body>
 </html>

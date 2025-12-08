@@ -50,20 +50,31 @@ function updateGuessList() {
     // Recent guesses: last 3 entries, newest first
     const recent = guesses.slice(-3).reverse();
     for (const g of recent) {
+        const sim = 1 - g.distance; // raw similarity
+        const logSim = similarityScale(sim);
+        const similarityPercent = (logSim * 100).toFixed(2);
         const li = document.createElement("li");
-        li.textContent = `${g.word} → Similarity: ${(1 - g.distance).toFixed(4)}`;
+        li.textContent = `${g.word} → ${similarityPercent}%`;
         recentUl.appendChild(li);
     }
 
-    // Full sorted list: all guesses by ascending distance (closest similarity first)
+    // Full sorted list: all guesses by ascending distance
     const sortedGuesses = [...guesses].sort((a,b) => a.distance - b.distance);
     for (const g of sortedGuesses) {
+        const sim = 1 - g.distance;
+        const logSim = similarityScale(sim);
+        const similarityPercent = (logSim * 100).toFixed(2);
         const li = document.createElement("li");
-        li.textContent = `${g.word} → Similarity: ${(1 - g.distance).toFixed(4)}`;
+        li.textContent = `${g.word} → ${similarityPercent}%`;
         fullUl.appendChild(li);
     }
 }
 
+function similarityScale(sim) {
+    const a = 20; // controls steepness
+    const center = 0.2; // controls center
+    return 1 / (1 + Math.exp(-a * (sim - center)));
+}
 
 // Check a guess
 async function checkGuess() {

@@ -2,12 +2,19 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>WebRTC Shared Room Demo</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <title>WebRTC Mesh Demo</title>
+    <style>
+        body { font-family: sans-serif; }
+        #log { list-style-type: none; padding: 0; }
+    </style>
     <script defer src="js/rtc.js"></script>
 </head>
 <body>
-<h2>WebRTC Shared Room Demo</h2>
+<h2>WebRTC Mesh Demo</h2>
+
+<div>
+    Connected peers: <span id="peer-count">0</span>
+</div>
 
 <button id="start">Start Connection</button>
 

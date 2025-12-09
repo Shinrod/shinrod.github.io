@@ -1,25 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <title>WebRTC Mesh Demo</title>
-    <style>
-        body { font-family: sans-serif; }
-        #log { list-style-type: none; padding: 0; }
-    </style>
-    <script defer src="js/rtc.js"></script>
+<meta charset="utf-8">
+<title>WebRTC Mesh Chat with Usernames</title>
+<style>
+body { font-family: sans-serif; padding: 20px; }
+#log { list-style-type: none; padding: 0; max-height: 300px; overflow-y: auto; border: 1px solid #ccc; margin-top: 10px; padding: 5px; }
+#log li { margin-bottom: 4px; }
+#peer-count { font-weight: bold; }
+</style>
+<script defer src="js/rtc.js"></script>
 </head>
 <body>
-<h2>WebRTC Mesh Demo</h2>
+
+<h2>WebRTC Mesh Chat</h2>
 
 <div>
-    Connected peers: <span id="peer-count">0</span>
+Connected peers: <span id="peer-count">0</span>
 </div>
 
-<button id="start">Start Connection</button>
+<div style="margin-top:10px;">
+<label for="username">Your name: </label>
+<input id="username" placeholder="Enter your name" />
+</div>
 
-<h3>Chat</h3>
-<input id="msg" placeholder="Message">
+<h3 style="margin-top:15px;">Chat</h3>
+<input id="msg" placeholder="Message" style="width:70%;" />
 <button id="send">Send</button>
 
 <ul id="log"></ul>

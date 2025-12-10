@@ -2,27 +2,47 @@
 <html>
 <head>
     <meta charset="UTF-8" />
-    <title>French Semantic Guess Game</title>
+    <title>French Semantic Guess Game - Multiplayer</title>
     <link rel="stylesheet" href="css/style.css">
-    <script type="module" src="js/app.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        input { margin-bottom: 10px; }
+        #log { list-style-type: none; padding: 0; max-height: 300px; overflow-y: auto; border: 1px solid #ccc; margin-top: 10px; padding: 5px; }
+        #log li { margin-bottom: 4px; }
+        .progress-container { width: 100px; background: #eee; height: 10px; border-radius: 5px; }
+        .progress-bar { height: 10px; background: #4caf50; border-radius: 5px; }
+    </style>
 </head>
 <body>
-    <h2>Cémantix (oui le vrai)</h2>
 
-    <p id="hint"></p>
+<h2>Cémantix Multiplayer</h2>
 
-    <input id="guess" placeholder="Enter a word">
-    <button id="compute">Check</button>
-    <button id="newWord">New Word</button>
+<div>
+    Your name: <input id="username" placeholder="Enter your name" />
+</div>
 
-    <p>Derniers guess:</p>
-    <table id="recentGuessTable">
-        <tbody></tbody>
-    </table>
+<p id="hint">Loading model...</p>
 
-    <p>Tous les guess:</p>
-    <table id="guessTable">
-        <tbody></tbody>
-    </table>
+<input id="guess" placeholder="Enter a word">
+<button id="compute">Check</button>
+<button id="newWord">New Word</button>
+
+<p>Recent guesses:</p>
+<table id="recentGuessTable">
+    <tbody></tbody>
+</table>
+
+<p>All guesses:</p>
+<table id="guessTable">
+    <tbody></tbody>
+</table>
+
+<div>
+    Connected peers: <span id="peer-count">0</span>
+</div>
+
+<ul id="log"></ul>
+
+<script type="module" src="js/app.js"></script>
 </body>
 </html>

@@ -304,6 +304,7 @@ function connect() {
                 delete channels[msg.peer_id];
                 delete peerNames[msg.peer_id];
                 updatePeerCount();
+                updatePeerList();
                 break;
 
             case "offer":
@@ -324,6 +325,7 @@ function connect() {
         }
 
         updatePeerCount();
+        updatePeerList();
     };
 
     socket.onerror = (e) => {
@@ -337,6 +339,18 @@ function connect() {
 
 function updatePeerCount() {
     peerCountEl.textContent = Object.keys(peers).length;
+}
+
+function updatePeerList() {
+    const listEl = document.getElementById("peer-list");
+    listEl.innerHTML = "";
+
+    // Loop through all connected peers
+    for (const id in peerNames) {
+        const li = document.createElement("li");
+        li.textContent = peerNames[id] || id; // username or fallback to peer ID
+        listEl.appendChild(li);
+    }
 }
 
 function createPeerConnection(targetId) {
@@ -361,6 +375,7 @@ function createPeerConnection(targetId) {
 
     peers[targetId] = pc;
     updatePeerCount();
+    updatePeerList();
     return pc;
 }
 
@@ -460,8 +475,8 @@ function handleDataMessage(fromId, data) {
             // Log the change only if the name actually changed
             if (oldName !== newName & newName != undefined) {
                 log(`${oldName} changed name to ${newName}`);
+                updatePeerList();
             }
-
             return;
 
         case "target-word":
@@ -494,7 +509,9 @@ function handleDataMessage(fromId, data) {
             return;
         
         case "peer-joined-log":
+            peerNames[fromId] = parsed.user
             log(`${parsed.user} joined`);
+            updatePeerList();
             return;
 
         default:

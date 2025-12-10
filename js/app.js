@@ -47,16 +47,28 @@ if (saved && saved.trim() !== "") {
     usernameInput.value = "";
 }
 
-usernameInput.addEventListener("input", (e) => {
-    myName = e.target.value.trim() || "Anonymous";
-    localStorage.setItem("username", myName);
+usernameInput.addEventListener("blur", (e) => {
+    const newName = usernameInput.value.trim() || "Anonymous";
 
-    // Broadcast name update to peers (if channels exist)
-    for (const id in channels) {
-        const ch = channels[id];
-        if (ch && ch.readyState === "open") {
-            ch.send(JSON.stringify({ type: "set-username", name: myName }));
+    if (newName !== myName) {
+        const oldName = myName; // remember old username
+        myName = newName;
+
+        localStorage.setItem("username", myName);
+
+        // Broadcast name update to peers (if channels exist)
+        for (const id in channels) {
+            const ch = channels[id];
+            if (ch && ch.readyState === "open") {
+                ch.send(JSON.stringify({
+                    type: "set-username",
+                    oldName: oldName,
+                    newName: myName
+                }));
+            }
         }
+
+        log(`Changed name to ${myName}`)
     }
 });
 
@@ -281,16 +293,15 @@ function connect() {
                 break;
 
             case "peer-joined":
-                log(`${msg.username || msg.peer_id} joined`); // local log
-                broadcastPeerJoinedLog(msg.username || msg.peer_id); // notify all peers
                 createOfferTo(msg.peer_id);
                 break;
 
             case "peer-left":
+                log(`${peerNames[msg.peer_id]} left`);
+
                 if (peers[msg.peer_id]) peers[msg.peer_id].close();
                 delete peers[msg.peer_id];
                 delete channels[msg.peer_id];
-                log(`${peerNames[msg.peer_id]} left`);
                 delete peerNames[msg.peer_id];
                 updatePeerCount();
                 break;
@@ -358,6 +369,8 @@ function setupDataChannel(peerIdParam, channel) {
 
     channel.onopen = () => {
         channel.send(JSON.stringify({ type: "set-username", name: myName }));
+        // Broadcast to all peers that this user joined
+        sendPeerJoinedLogTo(peerIdParam, myName);
         sendTargetWordTo(peerIdParam);
     };
 
@@ -438,7 +451,17 @@ function handleDataMessage(fromId, data) {
     // Recognized JSON -> handle known message types quietly (no chat leak)
     switch (parsed.type) {
         case "set-username":
-            peerNames[fromId] = parsed.name;
+            const oldName = parsed.oldName || peerNames[fromId] || fromId;
+            const newName = parsed.newName;
+
+            // Update our local map
+            peerNames[fromId] = newName;
+
+            // Log the change only if the name actually changed
+            if (oldName !== newName & newName != undefined) {
+                log(`${oldName} changed name to ${newName}`);
+            }
+
             return;
 
         case "target-word":
@@ -540,18 +563,17 @@ function broadcastTargetWord() {
     }
 }
 
-function broadcastPeerJoinedLog(username) {
+// Send a "peer joined" log to a specific peer only
+function sendPeerJoinedLogTo(peerId, username) {
+    const ch = channels[peerId];
+    if (!ch || ch.readyState !== "open") return;
+
     const msg = {
         type: "peer-joined-log",
         user: username
     };
 
-    for (const peerId in channels) {
-        const ch = channels[peerId];
-        if (ch && ch.readyState === "open") {
-            ch.send(JSON.stringify(msg));
-        }
-    }
+    ch.send(JSON.stringify(msg));
 }
 
 // Start signaling immediately (so the WebSocket request appears in network tab)

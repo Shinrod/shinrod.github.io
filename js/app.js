@@ -69,6 +69,7 @@ usernameInput.addEventListener("blur", (e) => {
         }
 
         log(`Nouveau pseudo: ${myName}`)
+        updatePeerList();
     }
 });
 
@@ -338,12 +339,16 @@ function connect() {
 }
 
 function updatePeerCount() {
-    peerCountEl.textContent = Object.keys(peers).length;
+    peerCountEl.textContent = Object.keys(peers).length + 1;
 }
 
 function updatePeerList() {
     const listEl = document.getElementById("peer-list");
     listEl.innerHTML = "";
+
+    const li = document.createElement("li");
+    li.textContent = `${myName} (moi)`
+    listEl.appendChild(li);
 
     // Loop through all connected peers
     for (const id in peerNames) {

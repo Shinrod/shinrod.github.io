@@ -255,11 +255,22 @@ function unhashWord(hash) {
 // Pick new target word (host action)
 // Broadcast target-word (word + embedding) to peers but do NOT log it to chat
 ///////////////////////
-const frenchWords = [
-    "chat","chien","maison","voiture","pomme",
-    "fleur","livre","soleil","montagne","école",
-    "bonbon","ordinateur","amour","détester","rapide"
-];
+let frenchWords = [];
+
+async function loadWords() {
+    const res = await fetch("words.txt");
+    const text = await res.text();
+
+    // Split on newlines, trim, and remove empty lines
+    frenchWords = text
+        .split("\n")
+        .map(w => w.trim())
+        .filter(w => w.length > 0);
+
+    console.log(`Loaded ${frenchWords.length} words.`);
+}
+
+await loadWords();
 
 async function pickNewWord() {
     targetWord = frenchWords[Math.floor(Math.random() * frenchWords.length)];

@@ -92,7 +92,7 @@ function cosineSimilarity(a, b) {
     return dot / (magA * magB);
 }
 
-function trimmedCosineSimilarity(a, b, topTrimRatio = 0.05, botTrimRatio = 0) {
+function trimmedCosineSimilarity(a, b, topTrimRatio = 0.045, botTrimRatio = 0) {
     if (a.length !== b.length) {
         throw new Error("Embedding dimension mismatch");
     }

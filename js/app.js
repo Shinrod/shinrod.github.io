@@ -113,7 +113,7 @@ function getEmoji(percent) {
     if (percent < 40) return "🌱";
     if (percent < 60) return "🌲";
     if (percent < 80) return "🔥";
-    if (percent < 99.99) return "🥵";
+    if (percent < 99.999) return "🥵";
     return "🎉";
 }
 

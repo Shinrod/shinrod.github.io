@@ -137,14 +137,14 @@ function computeProgress(simPercent) {
 }
 
 // Get the emoji to display depending on the percentage
-function getEmoji(percent) {
+function getEmoji(percent, word) {
     if (percent < 5) return "🥶";
     if (percent < 10) return "🧊";
     if (percent < 25) return "💧";
     if (percent < 40) return "🌱";
     if (percent < 60) return "🌲";
     if (percent < 80) return "🔥";
-    if (percent < 99.999) return "🥵";
+    if (word != targetWord) return "🥵";
     return "🎉";
 }
 
@@ -175,7 +175,7 @@ function renderTable(guessesList, tableSelector) {
         simCell.style.fontFamily = "monospace";
 
         const emojiCell = document.createElement("td");
-        emojiCell.textContent = getEmoji(similarityPercent);
+        emojiCell.textContent = getEmoji(similarityPercent, g.word);
         emojiCell.style.textAlign = "right";
         emojiCell.style.whiteSpace = "pre";
         emojiCell.style.fontFamily = "monospace";

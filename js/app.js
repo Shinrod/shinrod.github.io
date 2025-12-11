@@ -92,9 +92,40 @@ function cosineSimilarity(a, b) {
     return dot / (magA * magB);
 }
 
+function trimmedCosineSimilarity(a, b, topTrimRatio = 0.05, botTrimRatio = 0) {
+    if (a.length !== b.length) {
+        throw new Error("Embedding dimension mismatch");
+    }
+
+    const diffs = a.map((x, i) => Math.abs(x - b[i]));
+
+    // Sort diffs while keeping original indices
+    const sorted = diffs
+        .map((value, index) => ({ value, index }))
+        .sort((x, y) => x.value - y.value);
+
+    const n = a.length;
+    const trimTopN = Math.floor(n * topTrimRatio);
+    const trimBotN = Math.floor(n * botTrimRatio);
+
+    // Keep only the middle %
+    const kept = sorted.slice(trimBotN, n - trimTopN);
+
+    // Build trimmed vectors
+    const aTrim = kept.map(obj => a[obj.index]);
+    const bTrim = kept.map(obj => b[obj.index]);
+
+    // Standard cosine similarity on trimmed vectors
+    const dot = aTrim.reduce((s, x, i) => s + x * bTrim[i], 0);
+    const magA = Math.sqrt(aTrim.reduce((s, x) => s + x * x, 0));
+    const magB = Math.sqrt(bTrim.reduce((s, x) => s + x * x, 0));
+
+    return dot / (magA * magB);
+}
+
 function similarityScale(sim) {
-    const a = 20;
-    const center = 0.2;
+    const a = 30;
+    const center = 0.3;
     return 1 / (1 + Math.exp(-a * (sim - center)));
 }
 
@@ -257,7 +288,7 @@ async function checkGuess() {
 
     // compute embedding & distance locally
     const guessEmbedding = await embedWord(guess);
-    const similarity = cosineSimilarity(guessEmbedding, targetEmbedding);
+    const similarity = trimmedCosineSimilarity(guessEmbedding, targetEmbedding);
     const distance = 1 - similarity;
 
     const guessObj = { word: guess, distance, author: myName };
@@ -269,6 +300,16 @@ async function checkGuess() {
     broadcastMessage({ type: "guess", guess: guessObj });
 
     input.value = "";
+}
+
+async function wordSimilarity(word1, word2) {
+    const word1Embedding = await embedWord(word1);
+    const word2Embedding = await embedWord(word2);
+    const similarity = trimmedCosineSimilarity(word1Embedding, word2Embedding);
+
+    const logSim = similarityScale(similarity);
+    const similarityPercent = logSim * 100;
+    return similarityPercent;
 }
 
 ///////////////////////

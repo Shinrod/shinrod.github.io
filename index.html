@@ -21,35 +21,36 @@
 </head>
 <body>
 
-<h2>Cémantix Multiplayer</h2>
+<h2>Cémantix (oui oui, le vrai)</h2>
 
 <div>
-    Your name: <input id="username" placeholder="Enter your name" />
+    Pseudo: <input id="username" placeholder="Pseudo" />
 </div>
 
-<p id="hint">Loading model...</p>
+<p id="hint">Chagement...</p>
 
 <input id="guess" placeholder="Enter a word">
-<button id="compute">Check</button>
-<button id="newWord">New Word</button>
+<button id="compute">Confirmer</button>
 
-<p>Recent guesses:</p>
+<p>Guess récents</p>
 <table id="recentGuessTable">
     <tbody></tbody>
 </table>
 
-<p>All guesses:</p>
+<p>Tous les guess</p>
 <table id="guessTable">
     <tbody></tbody>
 </table>
 
 </br>
 <div>
-    Connected peers: <span id="peer-count">0</span>
+    Joueurs en ligne: <span id="peer-count">0</span>
     <ul id="peer-list"></ul>
 </div>
 
 <ul id="log"></ul>
+
+<button id="newWord">Nouveau mot</button>
 
 <script type="module" src="js/app.js"></script>
 </body>

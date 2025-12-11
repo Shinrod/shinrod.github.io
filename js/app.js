@@ -68,7 +68,7 @@ usernameInput.addEventListener("blur", (e) => {
             }
         }
 
-        log(`Changed name to ${myName}`)
+        log(`Nouveau pseudo: ${myName}`)
     }
 });
 
@@ -221,7 +221,7 @@ async function pickNewWord() {
     broadcastTargetWord();
 
     console.log("Picked new target word (host only):", hashWord(targetWord));
-    log(`${myName} chose a new word`);
+    log(`${myName} a généré un nouveau mot`);
 }
 
 ///////////////////////
@@ -233,7 +233,7 @@ async function checkGuess() {
     const input = document.getElementById("guess");
     const guess = input.value.trim();
     if (!guess) return;
-    if (!hasTargetWord()) return alert("No target word yet. Wait for the host.");
+    if (!hasTargetWord()) pickNewWord();
 
     // compute embedding & distance locally
     const guessEmbedding = await embedWord(guess);
@@ -275,7 +275,7 @@ function connect() {
         switch (msg.type) {
             case "welcome":
                 peerId = msg.peer_id;
-                log(`You joined as: ${myName}`);
+                log(`Partie rejointe en tant que: ${myName}`);
                 // If signaling server provides peer count info and says we are first, auto-pick
                 // (fallback: do nothing; host may be a human clicking New Word)
                 if (typeof msg.peers_count !== "undefined") {
@@ -297,7 +297,7 @@ function connect() {
                 break;
 
             case "peer-left":
-                log(`${peerNames[msg.peer_id]} left`);
+                log(`${peerNames[msg.peer_id]} a quitté la partie`);
 
                 if (peers[msg.peer_id]) peers[msg.peer_id].close();
                 delete peers[msg.peer_id];
@@ -474,7 +474,7 @@ function handleDataMessage(fromId, data) {
 
             // Log the change only if the name actually changed
             if (oldName !== newName & newName != undefined) {
-                log(`${oldName} changed name to ${newName}`);
+                log(`${oldName} s'est renommé ${newName}`);
                 updatePeerList();
             }
             return;
@@ -494,7 +494,7 @@ function handleDataMessage(fromId, data) {
             hintEl.textContent = "Et c'est parti !";
             updateGuessList();
             console.log("Received target word and guesses from peer:", hashWord(targetWord));
-            log(`${parsed.user} chose a new word`);
+            log(`${parsed.user} a généré un nouveau mot`);
             return;
 
         case "guess":
@@ -510,7 +510,7 @@ function handleDataMessage(fromId, data) {
         
         case "peer-joined-log":
             peerNames[fromId] = parsed.user
-            log(`${parsed.user} joined`);
+            log(`${parsed.user} a rejoint la partie`);
             updatePeerList();
             return;
 
@@ -530,14 +530,14 @@ async function loadModel() {
     hintEl.textContent = "Loading model...";
     try {
         embedder = await pipeline("feature-extraction", "Xenova/sentence-camembert-large");
-        hintEl.textContent = "Model loaded!";
+        hintEl.textContent = "Partie prête !";
         // If flagged to pick a word (we were first before model loaded), do it now
         if (waitForModelPickOnLoad) {
             waitForModelPickOnLoad = false;
             await pickNewWord();
         }
     } catch (e) {
-        hintEl.textContent = "Model load failed";
+        hintEl.textContent = "Echec du lancement de la partie";
         console.error("Model load error:", e);
     }
 }

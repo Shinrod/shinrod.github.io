@@ -105,6 +105,18 @@ function computeProgress(simPercent) {
     return Math.pow(normalized, gamma) * 100;
 }
 
+// Get the emoji to display depending on the percentage
+function getEmoji(percent) {
+    if (percent < 5) return "🥶";
+    if (percent < 10) return "🧊";
+    if (percent < 25) return "💧";
+    if (percent < 40) return "🌱";
+    if (percent < 60) return "🌲";
+    if (percent < 80) return "🔥";
+    if (percent < 99.99) return "🥵";
+    return "🎉";
+}
+
 ///////////////////////
 // Table rendering & update logic
 ///////////////////////
@@ -131,6 +143,12 @@ function renderTable(guessesList, tableSelector) {
         simCell.style.whiteSpace = "pre";
         simCell.style.fontFamily = "monospace";
 
+        const emojiCell = document.createElement("td");
+        emojiCell.textContent = getEmoji(similarityPercent);
+        emojiCell.style.textAlign = "right";
+        emojiCell.style.whiteSpace = "pre";
+        emojiCell.style.fontFamily = "monospace";
+
         const progressCell = document.createElement("td");
         if (similarityPercent > 25) {
             const container = document.createElement("div");
@@ -146,6 +164,7 @@ function renderTable(guessesList, tableSelector) {
 
         row.appendChild(wordCell);
         row.appendChild(simCell);
+        row.appendChild(emojiCell);
         row.appendChild(progressCell);
 
         tableBody.appendChild(row);

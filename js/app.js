@@ -210,6 +210,8 @@ function renderTable(guessesList, tableSelector) {
         row.appendChild(progressCell);
 
         tableBody.appendChild(row);
+
+        if (isCorrectWord(g.word)) revealWholeWord();
     }
 }
 
@@ -290,6 +292,10 @@ async function pickNewWord() {
     updateGuessList();
     hintEl.textContent = "Et c'est parti !";
 
+    // Reset revealed letters
+    revealed = new Array(targetWord.length).fill(false);
+    displayHiddenWord();
+
     // Broadcast to all peers with current guess list (empty at first)
     broadcastTargetWord();
 
@@ -313,6 +319,8 @@ async function checkGuess() {
     const similarity = trimmedCosineSimilarity(guessEmbedding, targetEmbedding);
     const distance = 1 - similarity;
 
+    maybeRevealRandomLetter(guess, similarity);
+
     const guessObj = { word: guess, distance, author: myName };
     // Add locally
     guesses.push(guessObj);
@@ -333,6 +341,93 @@ async function wordSimilarity(word1, word2) {
     const similarityPercent = logSim * 100;
     return similarityPercent;
 }
+
+
+///////////////////////
+// Word hint
+///////////////////////
+function normalizeWord(w) {
+    return w
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+}
+
+function isSameWord(a, b) {
+    return normalizeWord(a) === normalizeWord(b);
+}
+
+function isValidGuess(word) {
+    const w = normalizeWord(word);
+    return /^[a-z]+$/.test(w); // only letters
+}
+
+let revealed = [];   // array of booleans matching each letter of targetWord
+let hiddenWordEl = document.getElementById("hiddenWord");
+
+function displayHiddenWord(override = null) {
+    const container = document.getElementById("hiddenWord");
+
+    if (override) {
+        container.textContent = override;
+        return;
+    }
+
+    // Default behavior: show blocks + revealed letters
+    const display = targetWord
+        .split("")
+        .map((ch, i) => (revealed[i] ? ch : "⬛"))
+        .join("");
+
+    container.textContent = display;
+}
+
+
+function revealRandomLetter() {
+    // Collect index of unrevealed letters
+    const hiddenIndexes = revealed
+        .map((r, i) => (!r ? i : null))
+        .filter(i => i !== null);
+
+    if (hiddenIndexes.length === 0) return; // nothing to reveal
+
+    const idx = hiddenIndexes[Math.floor(Math.random() * hiddenIndexes.length)];
+    revealed[idx] = true;
+
+    displayHiddenWord();
+}
+
+// Reveal a random letter when guessing if the criterias are met
+function maybeRevealRandomLetter(guess, similarity) {
+    // Displayed similarity
+    const logSim = similarityScale(similarity);
+    const similarityPercent = logSim * 100;
+
+    // Word do not only contain letters
+    if (!isValidGuess(guess)) return;
+
+    // Guess already in list
+    if (guesses.some(g => isSameWord(g.word, guess))) return;
+
+    if (similarityPercent >= 98) {
+        revealRandomLetter();
+    }
+}
+
+function revealWholeWord() {
+    if (!targetWord) return;
+
+    // Mark all letters as revealed
+    revealed = revealed.map(() => true);
+
+    // Add emoji decoration
+    const decorated = `🎉 ${targetWord} 🎉`;
+
+    // Update the visual display
+    displayHiddenWord(decorated);
+}
+
 
 ///////////////////////
 // WebRTC / Signaling (mesh)

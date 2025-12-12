@@ -125,7 +125,7 @@ function trimmedCosineSimilarity(a, b, topTrimRatio = 0.045, botTrimRatio = 0) {
 
 function similarityScale(sim) {
     const a = 30;
-    const center = 0.3;
+    const center = 0.36;
     return 1 / (1 + Math.exp(-a * (sim - center)));
 }
 
@@ -181,8 +181,10 @@ function renderTable(guessesList, tableSelector) {
         simCell.style.fontFamily = "monospace";
 
         // Prevent words that are not target to be displayed at '100%' similarity
-        if (simCell.textContent == '100%' & !isCorrectWord(g.word)) {
+        if (similarityPercent.toFixed(2) == "100" & !isCorrectWord(g.word)) {
             simCell.textContent = "99.99%";
+        } else if (isCorrectWord(g.word)) {
+            simCell.textContent = "100%";
         }
 
         const emojiCell = document.createElement("td");

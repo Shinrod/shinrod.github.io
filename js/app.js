@@ -148,6 +148,12 @@ function getEmoji(percent, word) {
     return "🎉";
 }
 
+function isCorrectWord(input) {
+    if (!targetWord) return false;
+    const w = input.trim().toLowerCase();
+    return w === targetWord.toLowerCase();
+}
+
 ///////////////////////
 // Table rendering & update logic
 ///////////////////////
@@ -173,6 +179,11 @@ function renderTable(guessesList, tableSelector) {
         simCell.style.textAlign = "right";
         simCell.style.whiteSpace = "pre";
         simCell.style.fontFamily = "monospace";
+
+        // Prevent words that are not target to be displayed at '100%' similarity
+        if (simCell.textContent == '100%' & !isCorrectWord(g.word)) {
+            simCell.textContent = "99.99%";
+        }
 
         const emojiCell = document.createElement("td");
         emojiCell.textContent = getEmoji(similarityPercent, g.word);

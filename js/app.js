@@ -229,6 +229,9 @@ function updateGuessList() {
     // --- ALL GUESSES (sorted by distance) ---
     const sorted = [...guesses].sort((a, b) => a.distance - b.distance);
     renderTable(sorted, allTableSelector);
+
+    // Render hidden word
+    displayHiddenWord();
 }
 
 
@@ -329,7 +332,7 @@ async function checkGuess() {
     updateGuessList();
 
     // Broadcast guess to peers
-    broadcastMessage({ type: "guess", guess: guessObj });
+    broadcastMessage({ type: "guess", guess: guessObj, revealed: revealed});
 
     input.value = "";
 }
@@ -667,6 +670,7 @@ function handleDataMessage(fromId, data) {
             // Accept the new target word and embedding
             targetWord = parsed.word;
             targetEmbedding = parsed.embedding;
+            revealed = parsed.revealed;
 
             // Replace local guess list with the one from the sender
             if (Array.isArray(parsed.guesses)) {
@@ -686,6 +690,7 @@ function handleDataMessage(fromId, data) {
             if (parsed.guess && typeof parsed.guess.word === "string" && typeof parsed.guess.distance === "number") {
                 // Accept sender's distance as trusted
                 guesses.push(parsed.guess);
+                revealed = parsed.revealed;
                 updateGuessList();
             } else {
                 console.warn("Malformed guess message from", fromId, parsed);
@@ -749,7 +754,8 @@ function sendTargetWordTo(peerId) {
             user: myName,
             word: targetWord,
             embedding: targetEmbedding,
-            guesses: guesses // include all current guesses
+            guesses: guesses, // include all current guesses
+            revealed: revealed
         };
         ch.send(JSON.stringify(msg));
     }

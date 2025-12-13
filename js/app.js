@@ -212,6 +212,8 @@ function renderTable(guessesList, tableSelector) {
         row.appendChild(progressCell);
 
         tableBody.appendChild(row);
+
+        if (isCorrectWord(g.word)) revealWholeWord();
     }
 }
 
@@ -227,6 +229,9 @@ function updateGuessList() {
     // --- ALL GUESSES (sorted by distance) ---
     const sorted = [...guesses].sort((a, b) => a.distance - b.distance);
     renderTable(sorted, allTableSelector);
+
+    // Render hidden word
+    displayHiddenWord();
 }
 
 
@@ -292,6 +297,10 @@ async function pickNewWord() {
     updateGuessList();
     hintEl.textContent = "Et c'est parti !";
 
+    // Reset revealed letters
+    revealed = new Array(targetWord.length).fill(false);
+    displayHiddenWord();
+
     // Broadcast to all peers with current guess list (empty at first)
     broadcastTargetWord();
 
@@ -315,13 +324,15 @@ async function checkGuess() {
     const similarity = trimmedCosineSimilarity(guessEmbedding, targetEmbedding);
     const distance = 1 - similarity;
 
+    maybeRevealRandomLetter(guess, similarity);
+
     const guessObj = { word: guess, distance, author: myName };
     // Add locally
     guesses.push(guessObj);
     updateGuessList();
 
     // Broadcast guess to peers
-    broadcastMessage({ type: "guess", guess: guessObj });
+    broadcastMessage({ type: "guess", guess: guessObj, revealed: revealed});
 
     input.value = "";
 }
@@ -335,6 +346,93 @@ async function wordSimilarity(word1, word2) {
     const similarityPercent = logSim * 100;
     return similarityPercent;
 }
+
+
+///////////////////////
+// Word hint
+///////////////////////
+function normalizeWord(w) {
+    return w
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+}
+
+function isSameWord(a, b) {
+    return normalizeWord(a) === normalizeWord(b);
+}
+
+function isValidGuess(word) {
+    const w = normalizeWord(word);
+    return /^[a-z]+$/.test(w); // only letters
+}
+
+let revealed = [];   // array of booleans matching each letter of targetWord
+let hiddenWordEl = document.getElementById("hiddenWord");
+
+function displayHiddenWord(override = null) {
+    const container = document.getElementById("hiddenWord");
+
+    if (override) {
+        container.textContent = override;
+        return;
+    }
+
+    // Default behavior: show blocks + revealed letters
+    const display = targetWord
+        .split("")
+        .map((ch, i) => (revealed[i] ? ch : "⬛"))
+        .join("");
+
+    container.textContent = display;
+}
+
+
+function revealRandomLetter() {
+    // Collect index of unrevealed letters
+    const hiddenIndexes = revealed
+        .map((r, i) => (!r ? i : null))
+        .filter(i => i !== null);
+
+    if (hiddenIndexes.length === 0) return; // nothing to reveal
+
+    const idx = hiddenIndexes[Math.floor(Math.random() * hiddenIndexes.length)];
+    revealed[idx] = true;
+
+    displayHiddenWord();
+}
+
+// Reveal a random letter when guessing if the criterias are met
+function maybeRevealRandomLetter(guess, similarity) {
+    // Displayed similarity
+    const logSim = similarityScale(similarity);
+    const similarityPercent = logSim * 100;
+
+    // Word do not only contain letters
+    if (!isValidGuess(guess)) return;
+
+    // Guess already in list
+    if (guesses.some(g => isSameWord(g.word, guess))) return;
+
+    if (similarityPercent >= 97) {
+        revealRandomLetter();
+    }
+}
+
+function revealWholeWord() {
+    if (!targetWord) return;
+
+    // Mark all letters as revealed
+    revealed = revealed.map(() => true);
+
+    // Add emoji decoration
+    const decorated = `🎉 ${targetWord} 🎉`;
+
+    // Update the visual display
+    displayHiddenWord(decorated);
+}
+
 
 ///////////////////////
 // WebRTC / Signaling (mesh)
@@ -572,6 +670,7 @@ function handleDataMessage(fromId, data) {
             // Accept the new target word and embedding
             targetWord = parsed.word;
             targetEmbedding = parsed.embedding;
+            revealed = parsed.revealed;
 
             // Replace local guess list with the one from the sender
             if (Array.isArray(parsed.guesses)) {
@@ -591,6 +690,7 @@ function handleDataMessage(fromId, data) {
             if (parsed.guess && typeof parsed.guess.word === "string" && typeof parsed.guess.distance === "number") {
                 // Accept sender's distance as trusted
                 guesses.push(parsed.guess);
+                revealed = parsed.revealed;
                 updateGuessList();
             } else {
                 console.warn("Malformed guess message from", fromId, parsed);
@@ -654,7 +754,8 @@ function sendTargetWordTo(peerId) {
             user: myName,
             word: targetWord,
             embedding: targetEmbedding,
-            guesses: guesses // include all current guesses
+            guesses: guesses, // include all current guesses
+            revealed: revealed
         };
         ch.send(JSON.stringify(msg));
     }
